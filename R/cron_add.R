@@ -224,7 +224,7 @@ cron_add <- function(command, frequency="daily", at, days_of_month, days_of_week
   }
   
   return (invisible(job))
-  
+  # And this is just a random comment line to see how does it change
 }
 
 #' @rdname cron_add
