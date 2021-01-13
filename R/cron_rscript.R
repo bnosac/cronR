@@ -8,6 +8,7 @@
 #' @param log_timestamp logical, indicating to append a timestamp to the script log filename in the default argument of \code{rscript_log}. 
 #' This will only work if the path to the log folder does not contain spaces.
 #' @param workdir If provided, Rscript will be run from this working directory.
+#' @param trailing_arg If provided, this is added to the end of the command
 #' @return a character string with a command which can e.g. be put as a cronjob for running a simple R script at specific timepoints
 #' @export
 #' @examples
@@ -29,7 +30,8 @@ cron_rscript <- function(rscript,
                          cmd = file.path(Sys.getenv("R_HOME"), "bin", "Rscript"),
                          log_append = TRUE,
                          log_timestamp = FALSE,
-                         workdir = NULL) {
+                         workdir = NULL,
+                         trailing_arg = NULL) {
   stopifnot(file.exists(rscript))
   if(length(rscript_args) > 0){
     rscript_args <- paste(rscript_args, collapse = " ")
@@ -45,5 +47,10 @@ cron_rscript <- function(rscript,
   if(!is.null(workdir)){
     cmd <- sprintf("%s %s %s %s",  "cd", shQuote(workdir), "&&", cmd)
   }
+  
+  if(!is.null(trailing_arg)){
+    cmd <- sprintf("%s %s %s", cmd, "&&", trailing_arg)
+   }
+  
   cmd
 }

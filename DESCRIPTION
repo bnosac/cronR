@@ -22,4 +22,4 @@ License: MIT + file LICENSE
 VignetteBuilder: knitr
 OS_type: unix
 SystemRequirements: cron
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1

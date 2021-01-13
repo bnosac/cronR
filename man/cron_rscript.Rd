@@ -12,7 +12,8 @@ cron_rscript(
   cmd = file.path(Sys.getenv("R_HOME"), "bin", "Rscript"),
   log_append = TRUE,
   log_timestamp = FALSE,
-  workdir = NULL
+  workdir = NULL,
+  trailing_arg = NULL
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ cron_rscript(
 This will only work if the path to the log folder does not contain spaces.}
 
 \item{workdir}{If provided, Rscript will be run from this working directory.}
+
+\item{trailing_arg}{If provided, this is added to the end of the command}
 }
 \value{
 a character string with a command which can e.g. be put as a cronjob for running a simple R script at specific timepoints
