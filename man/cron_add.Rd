@@ -5,11 +5,33 @@
 \alias{cronjob}
 \title{Make a simple cron job}
 \usage{
-cron_add(command, frequency = "daily", at, days_of_month, days_of_week,
-  months, id, tags = "", description = "", dry_run = FALSE, user = "")
+cron_add(
+  command,
+  frequency = "daily",
+  at,
+  days_of_month,
+  days_of_week,
+  months,
+  id,
+  tags = "",
+  description = "",
+  dry_run = FALSE,
+  user = ""
+)
 
-cronjob(command, frequency = "daily", at, days_of_month, days_of_week, months,
-  id, tags = "", description = "", dry_run = FALSE, user = "")
+cronjob(
+  command,
+  frequency = "daily",
+  at,
+  days_of_month,
+  days_of_week,
+  months,
+  id,
+  tags = "",
+  description = "",
+  dry_run = FALSE,
+  user = ""
+)
 }
 \arguments{
 \item{command}{A command to execute.}

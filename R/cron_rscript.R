@@ -49,7 +49,7 @@ cron_rscript <- function(rscript,
   }
   
   if(!is.null(trailing_arg)){
-    cmd <- sprintf("%s %s %s %s", cmd, "&&", shQuote(trailing_arg))
+    cmd <- sprintf("%s %s %s", cmd, "&&", trailing_arg)
    }
   
   cmd
