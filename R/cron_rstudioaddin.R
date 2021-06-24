@@ -2,7 +2,9 @@
 #' @title Launch an RStudio addin which allows to schedule an Rscript interactively.
 #' @description Launch an RStudio addin which allows to schedule an Rscript interactively.
 #' 
-#' @param RscriptRepository path to the folder where R scripts will be copied to and launched. Defaults to the extdata folder in the cronR R library
+#' @param RscriptRepository path to the folder where R scripts will be copied to and launched from,
+#' and log files will be written to.
+#' Defaults to the current working directory. Can be set with the \code{CRON_LIVE} environment variable.
 #' @return the return of \code{\link[shiny]{runGadget}}
 #' @export
 #' @examples 
@@ -22,21 +24,14 @@ cron_rstudioaddin <- function(RscriptRepository) {
   requireNamespace("shiny")
   requireNamespace("miniUI")
   requireNamespace("shinyFiles")
-  current_repo <- file.path(system.file("extdata", package="cronR"), ".RscriptRepository.rds")
-  if(file.access(dirname(current_repo), mode = 2) == -1){
-    ## No access to the root folder by this user, take tempfolder - will not persist across R sessions
-    current_repo <- file.path(tempdir(), ".RscriptRepository.rds")
-  }
+
+  # set the directory where R scripts will be copied to and launched from.
+  # if no repo is provided, look for CRON_LIVE environment variable; if that's not found,
+  # default to working directory.
   if(missing(RscriptRepository)){
-    if(file.exists(current_repo)){
-      RscriptRepository <- readRDS(file = current_repo)
-    }else{
-      RscriptRepository <- system.file("extdata", package="cronR")
-      RscriptRepository <- getwd()
-      saveRDS(RscriptRepository, file = current_repo)
-    }
+    RscriptRepository <- Sys.getenv("CRON_LIVE", unset = getwd())
   }
-  
+
   check <- NULL
   
   ui <- miniUI::miniPage(
@@ -154,9 +149,7 @@ cron_rstudioaddin <- function(RscriptRepository) {
     # When path to Rscript repository has been changed
     shiny::observeEvent(input$rscript_repository, {
       RscriptRepository <<- normalizePath(input$rscript_repository, winslash = "/")
-      if(file.exists(RscriptRepository) && file.info(RscriptRepository)$isdir == TRUE){
-        saveRDS(RscriptRepository, file = current_repo)
-      }else {
+      if(is.na(file.info(RscriptRepository)$isdir)){
         message(sprintf("RscriptRepository %s does not exist, make sure this is an existing directory without spaces", RscriptRepository))
       }
     })
