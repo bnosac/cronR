@@ -179,7 +179,7 @@ cron_rstudioaddin <- function(RscriptRepository = Sys.getenv("CRON_LIVE", unset 
       }
       
       if (!file.exists(RscriptRepository)) {
-        stop(sprintf("The specified Rscript repository path does not exist. Please set it to an existing directory."))
+        stop(sprintf("The specified Rscript repository path, at %s, does not exist. Please set it to an existing directory.", RscriptRepository))
       }
       
       runme <- getSelectedFile(inputui = input$fileSelect)
