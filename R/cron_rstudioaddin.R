@@ -4,14 +4,14 @@
 #' 
 #' @param RscriptRepository path to the folder where R scripts will be copied to and launched from,
 #' and log files will be written to.
-#' Defaults to the current working directory. Can be set with the \code{CRON_LIVE} environment variable.
+#' Defaults to the current working directory. Can also be set with the \code{CRON_LIVE} environment variable.
 #' @return the return of \code{\link[shiny]{runGadget}}
 #' @export
 #' @examples 
 #' \dontrun{
 #' cron_rstudioaddin()
 #' }
-cron_rstudioaddin <- function(RscriptRepository) {
+cron_rstudioaddin <- function(RscriptRepository = Sys.getenv("CRON_LIVE", unset = getwd())) {
   
   cron_current <- function(){
     x <- try(parse_crontab(), silent = TRUE)
@@ -24,13 +24,6 @@ cron_rstudioaddin <- function(RscriptRepository) {
   requireNamespace("shiny")
   requireNamespace("miniUI")
   requireNamespace("shinyFiles")
-
-  # set the directory where R scripts will be copied to and launched from.
-  # if no repo is provided, look for CRON_LIVE environment variable; if that's not found,
-  # default to working directory.
-  if(missing(RscriptRepository)){
-    RscriptRepository <- Sys.getenv("CRON_LIVE", unset = getwd())
-  }
 
   check <- NULL
   
@@ -184,6 +177,11 @@ cron_rstudioaddin <- function(RscriptRepository) {
       if(length(grep(" ", RscriptRepository)) > 0){
         warning(sprintf("It is advised that the RscriptRepository does not contain spaces, change argument %s to another location on your drive which contains no spaces", RscriptRepository))
       }
+      
+      if (!file.exists(RscriptRepository)) {
+        stop(sprintf("The specified Rscript repository path does not exist. Please set it to an existing directory."))
+      }
+      
       runme <- getSelectedFile(inputui = input$fileSelect)
       myscript <- paste0(RscriptRepository, "/", basename(runme))
       if(runme != myscript){
