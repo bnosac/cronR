@@ -1,15 +1,16 @@
-
 #' @title Launch an RStudio addin which allows to schedule an Rscript interactively.
 #' @description Launch an RStudio addin which allows to schedule an Rscript interactively.
 #' 
-#' @param RscriptRepository path to the folder where R scripts will be copied to and launched. Defaults to the extdata folder in the cronR R library
+#' @param RscriptRepository path to the folder where R scripts will be copied to and launched from,
+#' and log files will be written to.
+#' Defaults to the current working directory. Can also be set with the \code{CRON_LIVE} environment variable.
 #' @return the return of \code{\link[shiny]{runGadget}}
 #' @export
 #' @examples 
 #' \dontrun{
 #' cron_rstudioaddin()
 #' }
-cron_rstudioaddin <- function(RscriptRepository) {
+cron_rstudioaddin <- function(RscriptRepository = Sys.getenv("CRON_LIVE", unset = getwd())) {
   
   cron_current <- function(){
     x <- try(parse_crontab(), silent = TRUE)
@@ -22,21 +23,7 @@ cron_rstudioaddin <- function(RscriptRepository) {
   requireNamespace("shiny")
   requireNamespace("miniUI")
   requireNamespace("shinyFiles")
-  current_repo <- file.path(system.file("extdata", package="cronR"), ".RscriptRepository.rds")
-  if(file.access(dirname(current_repo), mode = 2) == -1){
-    ## No access to the root folder by this user, take tempfolder - will not persist across R sessions
-    current_repo <- file.path(tempdir(), ".RscriptRepository.rds")
-  }
-  if(missing(RscriptRepository)){
-    if(file.exists(current_repo)){
-      RscriptRepository <- readRDS(file = current_repo)
-    }else{
-      RscriptRepository <- system.file("extdata", package="cronR")
-      RscriptRepository <- getwd()
-      saveRDS(RscriptRepository, file = current_repo)
-    }
-  }
-  
+
   check <- NULL
   
   ui <- miniUI::miniPage(
@@ -151,14 +138,14 @@ cron_rstudioaddin <- function(RscriptRepository) {
     #                    multiple = FALSE)
     # })
     
-    # When path to Rscript repository has been changed
-    shiny::observeEvent(input$rscript_repository, {
+    # when path to Rscript repository has been changed, wait 1 second (to avoid
+    # spamming output with messages), then check for existence of path and write permissions.
+    # also normalize RscriptRepository path in parent environment.
+    rscript_repo_observer <- reactive(input$rscript_repository)
+    rscript_repo_observer_delay <- debounce(rscript_repo_observer, 1000)
+    shiny::observeEvent(rscript_repo_observer_delay(), {
       RscriptRepository <<- normalizePath(input$rscript_repository, winslash = "/")
-      if(file.exists(RscriptRepository) && file.info(RscriptRepository)$isdir == TRUE){
-        saveRDS(RscriptRepository, file = current_repo)
-      }else {
-        message(sprintf("RscriptRepository %s does not exist, make sure this is an existing directory without spaces", RscriptRepository))
-      }
+      verify_rscript_path(RscriptRepository)
     })
     
     ###########################
@@ -191,6 +178,11 @@ cron_rstudioaddin <- function(RscriptRepository) {
       if(length(grep(" ", RscriptRepository)) > 0){
         warning(sprintf("It is advised that the RscriptRepository does not contain spaces, change argument %s to another location on your drive which contains no spaces", RscriptRepository))
       }
+      
+      if (!file.exists(RscriptRepository)) {
+        stop(sprintf("The specified Rscript repository path, at %s, does not exist. Please set it to an existing directory.", RscriptRepository))
+      }
+      
       runme <- getSelectedFile(inputui = input$fileSelect)
       myscript <- paste0(RscriptRepository, "/", basename(runme))
       if(runme != myscript){

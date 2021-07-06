@@ -7,7 +7,9 @@
 cron_rstudioaddin(RscriptRepository)
 }
 \arguments{
-\item{RscriptRepository}{path to the folder where R scripts will be copied to and launched. Defaults to the extdata folder in the cronR R library}
+\item{RscriptRepository}{path to the folder where R scripts will be copied to and launched from,
+and log files will be written to.
+Defaults to the current working directory. Can be set with the \code{CRON_LIVE} environment variable.}
 }
 \value{
 the return of \code{\link[shiny]{runGadget}}
