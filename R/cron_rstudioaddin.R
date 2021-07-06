@@ -1,4 +1,3 @@
-
 #' @title Launch an RStudio addin which allows to schedule an Rscript interactively.
 #' @description Launch an RStudio addin which allows to schedule an Rscript interactively.
 #' 
@@ -139,12 +138,14 @@ cron_rstudioaddin <- function(RscriptRepository = Sys.getenv("CRON_LIVE", unset 
     #                    multiple = FALSE)
     # })
     
-    # When path to Rscript repository has been changed
-    shiny::observeEvent(input$rscript_repository, {
+    # when path to Rscript repository has been changed, wait 1 second (to avoid
+    # spamming output with messages), then check for existence of path and write permissions.
+    # also normalize RscriptRepository path in parent environment.
+    rscript_repo_observer <- reactive(input$rscript_repository)
+    rscript_repo_observer_delay <- debounce(rscript_repo_observer, 1000)
+    shiny::observeEvent(rscript_repo_observer_delay(), {
       RscriptRepository <<- normalizePath(input$rscript_repository, winslash = "/")
-      if(is.na(file.info(RscriptRepository)$isdir)){
-        message(sprintf("RscriptRepository %s does not exist, make sure this is an existing directory without spaces", RscriptRepository))
-      }
+      verify_rscript_path(RscriptRepository)
     })
     
     ###########################
